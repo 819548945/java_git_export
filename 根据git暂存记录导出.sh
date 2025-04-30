@@ -26,7 +26,7 @@ java(){
 
     echo -en "${INFO_COLOR}导出java 文件...${RES}";
     cd $1;
-    git diff --name-only --diff-filter=M "*.java" > ${EXPORT_JAVA_FILE_LIST};
+    git diff --name-only --diff-filter=AM "*.java" > ${EXPORT_JAVA_FILE_LIST};
     xargs -a ${EXPORT_JAVA_FILE_LIST} cp --parents -t $2;
     echo -ne "\r";
     echo -e "${SUCCESS_COLOR}导出java文件完成${RES}";
@@ -36,7 +36,7 @@ class(){
     cd $1;
     mvn clean > ${LOG_FILE};
     mvn package >> ${LOG_FILE};
-    git diff --name-only --diff-filter=M "*.java" > ${EXPORT_JAVA_FILE_LIST};
+    git diff --name-only --diff-filter=AM "*.java" > ${EXPORT_JAVA_FILE_LIST};
     sed 's/src\/main\/java/target\/classes/g; s/\.java/\.class/g' ${EXPORT_JAVA_FILE_LIST} > ${EXPORT_CLASS_FILE_LIST}
     xargs -a ${EXPORT_CLASS_FILE_LIST} cp --parents -t $2
     echo -ne "\r";
