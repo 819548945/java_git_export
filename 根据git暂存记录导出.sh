@@ -1,23 +1,22 @@
 #!/bin/bash
-ERROR_COLOR="\e[31m"
-SUCCESS_COLOR="\e[32m"
-INFO_COLOR="\e[34m"
-RES="\e[0m"
+if [ ! -v "ERROR_COLOR" ]; then ERROR_COLOR="\e[31m"; fi
+if [ ! -v "SUCCESS_COLOR" ]; then SUCCESS_COLOR="\e[32m" ; fi
+if [ ! -v "INFO_COLOR" ]; then INFO_COLOR="\e[34m"; fi
+if [ ! -v "RES" ]; then RES="\e[0m"; fi
 
-createDir(){
-    rm -rf $1;
-    mkdir $1;
+
+cleanFile(){
+    rm -rf $1/src;
+    rm -rf $1/target;
+    rm -rf ${LOG_FILE}
+    rm -rf ${EXPORT_JAVA_FILE_LIST}
+    rm -rf ${EXPORT_CLASS_FILE_LIST}
 }
 check(){
     if test -d $1;then
-         if test -d $2;then
-            return 0;
-         else
-            echo -e "${ERROR_COLOR}导出目录$2 不存在${RES}";
-            return 2;
-         fi
+        return 0;
     else
-        echo -e "${ERROR_COLOR}工程目录$1 不存在${RES}";
+        echo -e "${ERROR_COLOR}目录$1 不存在${RES}";
        return 2;
     fi
 }
@@ -44,29 +43,40 @@ class(){
 }
 set -e
 echo -e "\033[40;37m 欢迎使用lich java git修改文件导出工具${RES}"
-WORK_DIRECTORY=$2/export
+
+if [ ! -v "WORK_DIRECTORY" ]; then
+   if [ $# = 1 ];then
+        WORK_DIRECTORY=$(pwd)/export
+   else
+        check $2
+        WORK_DIRECTORY=$2
+   fi
+fi
+if ! test -d $WORK_DIRECTORY;then
+    mkdir $WORK_DIRECTORY;
+fi
+check $1
 LOG_FILE=${WORK_DIRECTORY}/export.log
 EXPORT_JAVA_FILE_LIST=${WORK_DIRECTORY}/modified_java_files.txt
 EXPORT_CLASS_FILE_LIST=${WORK_DIRECTORY}/modified_class_files.txt
-if [ $# = 2 ];then
-  echo -e "${INFO_COLOR}工程目录 $1 导出目录$2";
-  if check $1 $2;then
-     createDir ${WORK_DIRECTORY}
+echo -e "${INFO_COLOR}工程目录 $1 导出目录$WORK_DIRECTORY";
+
+
+if [ $# = 2 ] || [ $# = 1 ];then
+     cleanFile ${WORK_DIRECTORY}
      java $1 ${WORK_DIRECTORY};
      class $1 ${WORK_DIRECTORY};
-  fi
 elif [ $# = 3 ];then
-    echo -e "${INFO_COLOR}工程目录 $1 导出目录$2 类型$3${RES}";
-    if check $1 $2;then
-        createDir ${WORK_DIRECTORY}
-        if [ $3 = 'java' ];then
-            java $1 ${WORK_DIRECTORY};
-        elif [ $3 = 'class' ];then
-            class $1 ${WORK_DIRECTORY};
-        else
-            echo -e "${ERROR_COLOR}参数错误类型只允许java或class，当前为$3${RES}";
-        fi
+    echo -e "类型$3${RES}";
+    cleanFile ${WORK_DIRECTORY}
+    if [ $3 = 'java' ];then
+        java $1 ${WORK_DIRECTORY};
+    elif [ $3 = 'class' ];then
+        class $1 ${WORK_DIRECTORY};
+    else
+        echo -e "${ERROR_COLOR}参数错误类型只允许java或class，当前为$3${RES}";
     fi
+    
 else
     echo -e "${ERROR_COLOR}参数个数错误请按照工程目录、导出目录、类型、进行传递${RES}";
 fi
